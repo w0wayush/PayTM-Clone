@@ -1,22 +1,24 @@
 import express from "express";
 import dotenv from "dotenv";
-import mainRouter from "./routes/index";
+import rootRouter from "./routes/index";
 import dbConnect from "./config/db";
 import cors from "cors";
-import bodyParser from "body-parser";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
-app.use(bodyParser());
 app.use(cors());
+
+app.use("/api/v1", rootRouter);
 
 dbConnect();
 
-app.use("/api/v1", mainRouter);
+app.get("/", (req, res) => {
+  res.send("<h1>Payment server working properly</h1>");
+});
 
-app.listen(() => {
+app.listen(PORT, () => {
   console.log("Server is listening in PORT - ", PORT);
 });
