@@ -110,21 +110,37 @@ const updateBody = zod.object({
 });
 
 router.put("/", authMiddleware, async (req, res) => {
-  const { success } = updateBody.safeParse(req.body);
+  const { success, data } = updateBody.safeParse(req.body);
   if (!success) {
-    res.status(411).json({
+    return res.status(411).json({
       message: "Error while updating information",
     });
   }
 
-  await User.updateOne(req.body, {
-    //@ts-ignore
-    id: req.userId,
-  });
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      //@ts-ignore
+      { _id: req.userId },
+      { $set: data },
+      { new: true }
+    );
 
-  res.json({
-    message: "Updated successfully",
-  });
+    if (!updatedUser) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      message: "Updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
 });
 
 router.get("/bulk", async (req, res) => {
